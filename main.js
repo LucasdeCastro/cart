@@ -3,64 +3,64 @@ function Game(){
     var self   = this;
     var start  = null;
     var room   = place();
-    var cart   = componet(95, 620, 30, 50, "#4f45f3");
+    var cart   = componet(80, 620, 30, 50, "#4f45f3");
     var finish = false;
     var leftBox  = [];
     var rightBox = [];
     var speed    = 5;
     var obt      = [];
     var position = [32, 80, 140];
-    room.start(10, 10, 215, 700, "#000");
+    var cartPosition = 1;
+    room.start(10, 10, 205, 700, "#000");
     cart.updateImage(room.context, document.getElementById("cart"));
 
     document.body.addEventListener('keydown', function(e){
         switch(e.which){
-            case 40:
-                console.log('down');
-                break;
             case 39:
-                console.log('right');
-                cart.x += 8;
-                break;
-            case 38:
-                console.log('up');
+                if(cartPosition < 2){
+                    cartPosition += 1;
+                    console.log(cartPosition, cart.x);
+                    cart.x = position[cartPosition];
+                }
                 break;
             case 37:
-                console.log('left');
-                cart.x -= 8;
-                break;
-            case 32:
-                console.log('space');
+                if(cartPosition > 0){
+                    console.log(cartPosition, cart.x);
+                    cartPosition -= 1;
+                    cart.x = position[cartPosition];
+                }
                 break;
         }
     });
 
     function generateRandom(min, max) {
         return Math.floor(Math.random() * (max - min + 1)) + min;
-    };
+    }
 
-    function drawObt(){
-        var count = generateRandom(1, 8);
+    function drawObt(max){
+        max = max || 8;
+        var count = generateRandom(1, max);
         var yplus = 0;
         while(count--) {
-            obt.push(componet(position[generateRandom(0,2)], ((yplus + 60) * -1), 40, 20, "#fff").update(room.context));
-            yplus += 60;
+            obt.push(componet(position[generateRandom(0,2)], ((yplus + 90) * -1), 40, 20, "#fff").update(room.context));
+            yplus += 90;
         }
-    };
+    }
 
     function drawStreet(){
         var count = 22;
         var yplus = -20;
         while(count--) {
             leftBox.push(componet(10, (yplus + 40), 15, 20, "#fff").update(room.context));
-            rightBox.push(componet(190, (yplus + 40), 15, 20, "#fff").update(room.context));
+            rightBox.push(componet(185, (yplus + 40), 15, 20, "#fff").update(room.context));
             yplus += 40;
         }
-    };
+    }
 
     function update(time){
-        if(leftBox.length == 0) drawStreet();
-        if(obt.length == 0) drawObt();
+        if(leftBox.length === 0) drawStreet();
+        if(obt.length === 0) drawObt();
+
         room.clear();
         cart.updateImage(room.context, document.getElementById("cart"));
 
@@ -79,23 +79,26 @@ function Game(){
             finish = finish || rightBox[i].colision(cart);
         }
 
-        for (var i = obt.length - 1; i >= 0; i--) {
+        for (let i = obt.length - 1; i >= 0; i--) {
             obt[i].y += speed;
             obt[i].update(room.context);
             if(obt[i].y > room.canvas.height){
                 obt[i].x = position[generateRandom(0,2)];
                 obt[i].y = -30;
-
             }
             finish = finish || obt[i].colision(cart);
         }
 
-
-        if(speed < 15)
+        if(speed < 12){
             speed += 0.001;
+        }
+
+        if(speed > 6 && speed < 6.001){
+            drawObt(2);
+        }
         if(!finish)
             window.requestAnimationFrame(update);
-    };
+    }
 
     function place(){
         return {
@@ -113,7 +116,7 @@ function Game(){
                 this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
             }
         };
-    };
+    }
 
     function componet(x, y, w, h, color){
         return {
@@ -129,23 +132,17 @@ function Game(){
                 return this;
             },
             "colision": function(el){
-                return (   this.x > (el.x - 20)
-                        && this.x < (el.x + 20)
-                        && (this.y + 20) > el.y
-                        && (this.y + 20) < (el.y + 20)
-                        );
+                return ((el.x + el.w) > this.x  && this.x > (el.x - this.w) && (this.y + this.h + 2) > el.y && (this.y + this.h + 2) < (el.y + this.h + 2));
             }
-        }
-    };
-
+        };
+    }
 
     self.start = function(){
         window.requestAnimationFrame(update);
     };
-};
+}
 
 document.addEventListener("DOMContentLoaded", function(){
-    console.log('dd');
     var game = new Game();
     game.start();
 });
